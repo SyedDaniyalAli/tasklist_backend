@@ -1,3 +1,6 @@
+# To run the container (in the same directory as the yaml file)
+# docker compose -f postgres.yaml up
+
 services:
   postgres:
     image: postgres:latest
