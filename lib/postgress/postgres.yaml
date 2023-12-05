@@ -1,0 +1,17 @@
+services:
+  postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_PASSWORD: password1
+      POSTGRES_USER: postgres
+      POSTGRES_DB: some-db
+      POSTGRES_HOST_AUTH_METHOD: trust #not recommended for production
+    ports:
+      # - "5432:5432"
+      - "5433:5432"
+    stdin_open: true
+    tty: true
+
+    volumes:
+      - ./sql/setup.sql:/docker-entrypoint-initdb.d/*
+      # - ./sql/setup.sql:/docker-entrypoint-initdb.d/init.sql

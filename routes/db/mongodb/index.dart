@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:dart_frog/dart_frog.dart';
 import 'package:mongo_dart/mongo_dart.dart';
+import 'package:tasklist_backend/hash_extension.dart';
 
 Future<Response> onRequest(RequestContext context) async {
   return switch (context.request.method) {
@@ -19,7 +20,9 @@ Future<Response> _getLists(RequestContext context) async {
 Future<Response> _createLists(RequestContext context) async {
   final body = await context.request.json() as Map<String, dynamic>;
   final name = body['name'] as String?;
-  final list = <String, dynamic>{'name': name};
+  final id = name?.hashValue;
+
+  final list = <String, dynamic>{'id': id, 'name': name};
   final result = await context.read<Db>().collection('lists').insertOne(list);
   return Response.json(body: {'id': result.id});
 }
