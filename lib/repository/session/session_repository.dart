@@ -13,14 +13,14 @@ class Session extends Equatable {
 
   /// The constructor
   const Session({
-    this.userId,
+    required this.userId,
     this.token,
     this.expiryDate,
     this.createdDate,
   });
 
   /// The session user id
-  final String? userId;
+  final String userId;
 
   /// The session token
   final String? token;
