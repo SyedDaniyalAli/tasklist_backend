@@ -1,105 +1,106 @@
 import 'package:equatable/equatable.dart';
+import 'package:meta/meta.dart';
 import 'package:tasklist_backend/hash_extension.dart';
 
-///in memory database
-Map<String, dynamic> userDb = {};
+@visibleForTesting
 
-///User Repository
+/// IN MEMORY CACHE
+Map<String, User> userDb = {};
+
+/// User's class
 class User extends Equatable {
-  ///Constructor
+  /// Constructor
   const User({
     required this.id,
-    required this.userName,
     required this.name,
+    required this.username,
     required this.password,
   });
 
-  ///User Id
+  /// User's id
   final String id;
 
-  /// Name
+  /// User's name
   final String name;
 
-  ///User userName
-  final String userName;
+  /// User's username
+  final String username;
 
-  ///User Password
+  /// User's password
   final String password;
 
   @override
-  List<Object?> get props => [
-        id,
-        userName,
-        name,
-        password,
-      ];
+  List<Object?> get props => [id, name, username, password];
 }
 
-/// user's repository
+/// User's Repository
 class UserRepository {
-  ///check in the database if the user exists
-  Future<User?> userCredentials(String userName, String password) async {
+  /// Checks in the database for a user with the provided username and password
+  Future<User?> userFromCredentials(String username, String password) async {
     final hashedPassword = password.hashValue;
 
-    final users = userDb.values
-        .where(
-          (user) =>
-              userName == (user as Map<String, dynamic>)['userName'] &&
-              hashedPassword == user['password'].toString(),
-        )
-        .toList();
+    final users = userDb.values.where(
+      (user) => user.username == username && user.password == hashedPassword,
+    );
 
     if (users.isNotEmpty) {
-      return users.first as User;
+      return users.first;
     }
+
     return null;
   }
 
-  ///Search user by id
-  User? userFromID(String id) {
-    return userDb[id] as User;
+  /// search for a user by id
+  Future<User?> userFromId(String id) async {
+    return userDb[id];
   }
 
-  ///create user
-  Future<String> createUser({
-    required String name,
-    required String userName,
-    required String password,
-  }) {
-    final currentUser = User(
-      id: userName.hashValue,
-      userName: userName,
-      name: name,
+  /// Creates a new user
+  Future<String> createUser(
+      {required String name,
+      required String username,
+      required String password}) {
+    final id = username.hashValue;
+
+    final user = User(
+      id: id,
+      username: username,
       password: password.hashValue,
+      name: name,
     );
-    userDb[currentUser.id] = currentUser;
 
-    return Future.value(currentUser.id);
+    userDb[id] = user;
+
+    return Future.value(id);
   }
 
-  ///Delete a user
+  /// Delete a user
   void deleteUser(String id) {
     userDb.remove(id);
   }
 
-  ///Update a user
-  void updateUser({
+  /// Update user
+  Future<void> updateUser({
     required String id,
-    required String name,
-    required String userName,
-    required String password,
-  }) {
+    required String? name,
+    required String? username,
+    required String? password,
+  }) async {
     final currentUser = userDb[id];
 
     if (currentUser == null) {
-      throw Exception('User not found');
+      return Future.error(Exception('User not found'));
+    }
+
+    if (password != null) {
+      password = password.hashValue;
     }
 
     final user = User(
       id: id,
-      userName: userName,
-      name: name,
-      password: password.hashValue,
+      name: name ?? currentUser.name,
+      username: username ?? currentUser.username,
+      password: password ?? currentUser.password,
     );
 
     userDb[id] = user;
